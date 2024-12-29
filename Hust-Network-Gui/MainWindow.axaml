@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="240"
+        x:Class="HustNetworkGui.MainWindow"
+        Icon="Assets/appLogo.ico"
+        Title="HUST Network Gui"
+        Width="360" Height="240"
+        MinWidth="360" MinHeight="240"
+        WindowStartupLocation="CenterScreen"
+        HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+    <StackPanel Orientation="Vertical">
+        <Label Name="StatusLabel" Content="状态：已断开" HorizontalContentAlignment="Center" />
+        <Grid ColumnDefinitions="*,180" RowDefinitions="*,*" Margin="30">
+            <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Content="失败重试时间(ms):" />
+            <NumericUpDown Name="ErrorTimeoutControl" Grid.Row="0" Grid.Column="1"
+                           VerticalAlignment="Center" HorizontalContentAlignment="Center"
+                           Value="10000" Minimum="2000" Increment="100" FormatString="0" />
+            <Label Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Content="成功等待时间(ms):" />
+            <NumericUpDown Name="SuccessTimeoutControl" Grid.Row="1" Grid.Column="1"
+                           VerticalAlignment="Center" HorizontalContentAlignment="Center"
+                           Value="30000" Minimum="5000" Increment="100" FormatString="0" />
+        </Grid>
+        <ToggleSwitch x:Name="AutoRunToggleSwitch"
+                      Content="开机自启动"
+                      Cursor="Hand"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                      Click="AutoRunToggleSwitch_OnClick" />
+    </StackPanel>
+</Window>
