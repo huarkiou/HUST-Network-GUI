@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -51,7 +53,7 @@ public partial class App : Application
 #endif
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File("logs/.log", rollingInterval: RollingInterval.Day,
+                .WriteTo.File(Path.Combine(AppContext.BaseDirectory, "logs/.log"), rollingInterval: RollingInterval.Day,
                     rollOnFileSizeLimit: true)
                 .CreateLogger();
             AppDomain.CurrentDomain.UnhandledException += (_, e) =>
@@ -73,6 +75,7 @@ public partial class App : Application
             (desktop.MainWindow as MainWindow)!.IsShutdown = true;
             desktop.Shutdown();
         }
+
         Log.CloseAndFlush();
     }
 
