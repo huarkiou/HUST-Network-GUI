@@ -73,6 +73,7 @@ public partial class App : Application
             (desktop.MainWindow as MainWindow)!.IsShutdown = true;
             desktop.Shutdown();
         }
+        Log.CloseAndFlush();
     }
 
     private void ChangeVisible_OnClick(object? sender, EventArgs e)
