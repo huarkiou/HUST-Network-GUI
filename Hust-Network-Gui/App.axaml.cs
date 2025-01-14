@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -12,7 +11,7 @@ using Serilog.Events;
 
 namespace HustNetworkGui;
 
-public partial class App : Application
+public class App : Application
 {
     public const string ProgramName = "Hust-Network-Gui";
 
