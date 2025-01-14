@@ -9,6 +9,9 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationIcon>Assets\appLogo.ico</ApplicationIcon>
         <RootNamespace>HustNetworkGui</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <Title>HUST Network GUI</Title>
+        <Authors>Huarkiou</Authors>
     </PropertyGroup>
 
     <ItemGroup>
