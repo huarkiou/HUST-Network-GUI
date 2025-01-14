@@ -15,11 +15,26 @@ public class App : Application
 {
     public const string ProgramName = "Hust-Network-Gui";
 
-    private Mutex? _mutex;
+    // private Mutex? _mutex;
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        // configure logger
+        Log.Logger = new LoggerConfiguration()
+#if DEBUG
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+#else
+            .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+#endif
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.File(Path.Combine(AppContext.BaseDirectory, "logs/.log"), rollingInterval: RollingInterval.Day,
+                rollOnFileSizeLimit: true)
+            .CreateLogger();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -27,41 +42,29 @@ public class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // check global mutex
-            _mutex = new Mutex(true, "Global\\" + ProgramName, out var createdNew);
-            if (!createdNew || _mutex == null)
+            Mutex mutex = new Mutex(true, "Global\\" + ProgramName, out var createdNew);
+            if (!createdNew)
             {
-                desktop.Shutdown();
+                Log.Information("Already run an instance");
+                Environment.Exit(0);
                 return;
             }
 
-            desktop.Exit += (_, _) => _mutex.ReleaseMutex();
+            desktop.Exit += (_, _) => mutex.ReleaseMutex();
+
+            desktop.Startup += (_, _) => Log.Information("Application is starting up");
+            desktop.Exit += (_, _) => Log.Information("Application is shutting down");
             desktop.ShutdownRequested += Quit_OnClick;
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // create window
+            // create main window
             desktop.MainWindow = new MainWindow();
-
-            // log
-            Log.Logger = new LoggerConfiguration()
-#if DEBUG
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-#else
-                .MinimumLevel.Information()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-#endif
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File(Path.Combine(AppContext.BaseDirectory, "logs/.log"), rollingInterval: RollingInterval.Day,
-                    rollOnFileSizeLimit: true)
-                .CreateLogger();
-            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
-                Log.Write(LogEventLevel.Error, (Exception)e.ExceptionObject, "Unhandled exception");
-            TaskScheduler.UnobservedTaskException +=
-                (_, e) => Log.Write(LogEventLevel.Error, e.Exception, "Unobserved task exception");
-            desktop.Startup += (_, _) => Log.Information("Application starting up");
-            desktop.Exit += (_, _) => Log.Information("Application is shutting down");
         }
+
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            Log.Write(LogEventLevel.Error, (Exception)e.ExceptionObject, "Unhandled exception");
+        TaskScheduler.UnobservedTaskException +=
+            (_, e) => Log.Write(LogEventLevel.Error, e.Exception, "Unobserved task exception");
 
 
         base.OnFrameworkInitializationCompleted();
