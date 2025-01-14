@@ -23,8 +23,7 @@ internal partial class ConfigurationContext : JsonSerializerContext;
 
 internal class AppConfiguration
 {
-    private static readonly string ConfigPath =
-        Path.GetDirectoryName(Environment.ProcessPath) + "/" + App.ProgramName + ".json";
+    private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
 
     public Configuration Config = new();
 
@@ -32,7 +31,7 @@ internal class AppConfiguration
     {
         if (!File.Exists(ConfigPath)) return;
         Config = JsonSerializer.Deserialize(
-            File.ReadAllText(ConfigPath), HustNetworkGui.ConfigurationContext.Default.Configuration);
+            File.ReadAllText(ConfigPath), ConfigurationContext.Default.Configuration);
     }
 
     ~AppConfiguration()
@@ -45,6 +44,6 @@ internal class AppConfiguration
     public void Save()
     {
         File.WriteAllText(ConfigPath, JsonSerializer.Serialize(
-            Config, typeof(Configuration), HustNetworkGui.ConfigurationContext.Default));
+            Config, typeof(Configuration), ConfigurationContext.Default));
     }
 }
