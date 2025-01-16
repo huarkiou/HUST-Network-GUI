@@ -38,8 +38,17 @@ public class HustNetworkController(string username, string password)
             {
                 tasks.RemoveAt(tasks.FindIndex(t => t == task));
             }
+            else
+            {
+                continue;
+            }
 
-            if (!task.IsCompletedSuccessfully) continue;
+            if (!task.IsCompletedSuccessfully)
+            {
+                _ = task.Exception;
+                continue;
+            }
+
             var responseMessage = task.Result;
             if (!responseMessage.IsSuccessStatusCode) continue;
             var content = responseMessage.Content.ReadAsStringAsync().Result.Trim();
