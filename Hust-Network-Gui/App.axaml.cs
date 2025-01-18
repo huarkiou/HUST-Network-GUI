@@ -32,7 +32,7 @@ public class App : Application
 #endif
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .WriteTo.File(Path.Combine(AppContext.BaseDirectory, "logs/.log"), rollingInterval: RollingInterval.Day,
+            .WriteTo.File(Path.Combine(AppContext.BaseDirectory, "logs/.log"), rollingInterval: RollingInterval.Month,
                 rollOnFileSizeLimit: true)
             .CreateLogger();
     }
