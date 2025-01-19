@@ -15,8 +15,6 @@ public class App : Application
 {
     public const string ProgramName = "Hust-Network-Gui";
 
-    // private Mutex? _mutex;
-
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
