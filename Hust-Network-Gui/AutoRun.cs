@@ -18,7 +18,7 @@ internal class AutoRun
         if (OperatingSystem.IsWindows())
         {
             _asKey = Registry.CurrentUser.OpenSubKey(RegistryKeyPath, true);
-            if (_asKey == null) Log.Warning("Unable to open Registry key");
+            if (_asKey == null) Log.Warning("Unable to open Registry key" + RegistryKeyPath);
         }
         else
         {
