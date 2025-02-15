@@ -17,7 +17,7 @@ namespace HustNetworkGui;
 public class HustNetworkController(string username, string password)
 {
     private readonly HttpClient _client = new(new SocketsHttpHandler
-        { AllowAutoRedirect = true, MaxAutomaticRedirections = 3, UseCookies = true });
+        { AllowAutoRedirect = true, MaxAutomaticRedirections = 3, UseCookies = true, UseProxy = false });
 
     public Uri? GetVerificationUrl()
     {
