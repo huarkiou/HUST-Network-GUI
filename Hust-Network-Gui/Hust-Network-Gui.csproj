@@ -12,6 +12,9 @@
         <IsPackable>false</IsPackable>
         <Title>HUST Network GUI</Title>
         <Authors>Huarkiou</Authors>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+        <FileVersion>1.0.0</FileVersion>
+        <NeutralLanguage>zh-Hans</NeutralLanguage>
     </PropertyGroup>
 
     <ItemGroup>
