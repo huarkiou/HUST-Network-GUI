@@ -22,10 +22,18 @@
                            VerticalAlignment="Center" HorizontalContentAlignment="Center"
                            Value="30000" Minimum="5000" Increment="100" FormatString="0" />
         </Grid>
-        <ToggleSwitch x:Name="AutoRunToggleSwitch"
-                      Content="开机自启动"
-                      Cursor="Hand"
-                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                      Click="AutoRunToggleSwitch_OnClick" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Spacing="36">
+            <ToggleSwitch x:Name="AutoRunToggleSwitch"
+                          Content="开机自启动"
+                          Cursor="Hand"
+                          VerticalAlignment="Center" HorizontalAlignment="Center"
+                          Click="AutoRunToggleSwitch_OnClick" />
+            <ToggleSwitch x:Name="ActiveProbingToggleSwitch"
+                          Content="NCSI主动检测"
+                          Cursor="Hand"
+                          VerticalAlignment="Center" HorizontalAlignment="Center"
+                          Click="ActiveProbingToggleSwitch_OnClickToggleSwitch_OnClick" />
+        </StackPanel>
     </StackPanel>
 </Window>

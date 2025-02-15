@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Net.NetworkInformation;
+using System.Security.Principal;
 using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -13,6 +14,7 @@ public partial class MainWindow : Window
 {
     private bool _showFirstTime = true;
     private readonly AutoRun _autoRun;
+    private readonly InternetActiveProbing _activeProbing;
     private bool _networkStatus;
     private readonly EventWaitHandle _inputWaitHandle = new AutoResetEvent(false);
 
@@ -48,9 +50,15 @@ public partial class MainWindow : Window
         };
 
         _autoRun = new AutoRun(App.ProgramName);
-
         AutoRunToggleSwitch.IsChecked = _autoRun.RunOnBoot;
 
+        _activeProbing = new InternetActiveProbing();
+        ActiveProbingToggleSwitch.IsCancel = _activeProbing.EnableActiveProbing;
+        if (OperatingSystem.IsWindows() &&
+            !new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
+        {
+            ActiveProbingToggleSwitch.IsEnabled = false;
+        }
 
         ErrorTimeoutControl.Value = AppConfiguration.Instance.Config.ErrorTimeout;
         SuccessTimeoutControl.Value = AppConfiguration.Instance.Config.SuccessTimeout;
@@ -175,6 +183,12 @@ public partial class MainWindow : Window
     {
         var cb = (ToggleSwitch)sender!;
         _autoRun.SetStartupOnBoot(cb.IsChecked!.Value);
+    }
+
+    private void ActiveProbingToggleSwitch_OnClickToggleSwitch_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var cb = (ToggleSwitch)sender!;
+        _activeProbing.SetActiveProbing(cb.IsChecked!.Value);
     }
 
     private static void SaveConfiguration()
