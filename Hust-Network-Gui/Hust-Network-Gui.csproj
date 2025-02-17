@@ -4,7 +4,9 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <PublishAot>true</PublishAot>
-        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <!-- Recommended Avalonia trimming settings for Native AOT -->
+        <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+        <TrimMode>link</TrimMode>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <ApplicationIcon>Assets\appLogo.ico</ApplicationIcon>
@@ -33,7 +35,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Assets\appLogo.ico" />
+        <!-- Preserve Avalonia types for reflection -->
+        <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+        <!-- <TrimmerRootAssembly Include="Avalonia.Themes.Default" />-->
+    </ItemGroup>
+    
+    <ItemGroup>
       <AvaloniaResource Include="Assets\appLogo.ico" />
     </ItemGroup>
 </Project>
