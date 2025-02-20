@@ -14,7 +14,7 @@ using Serilog;
 
 namespace HustNetworkGui;
 
-public class HustNetworkController(string username, string password)
+public partial class HustNetworkController(string username, string password)
 {
     private readonly HttpClient _client = new(new SocketsHttpHandler
         { AllowAutoRedirect = true, MaxAutomaticRedirections = 3, UseCookies = true, UseProxy = false });
@@ -57,7 +57,7 @@ public class HustNetworkController(string username, string password)
                 continue;
             }
 
-            var resMatch = Regex.Match(content, "top.self.location.href='(.*)'");
+            var resMatch = RegexMatchVerificationUrl().Match(content);
             if (resMatch.Success)
             {
                 Log.Debug("Get from {}. The response is {}", urls[task.Id].AbsoluteUri, resMatch.Groups[1].Value);
@@ -100,7 +100,7 @@ public class HustNetworkController(string username, string password)
     {
         // 加密密码
         var (modulus, exponent) = GetModExpFromPageinfo(originalUrl);
-        var macstringMatch = Regex.Match(originalUrl.ToString(), @"mac=(\w+)&", RegexOptions.Compiled);
+        var macstringMatch = RegexMatchMacString().Match(originalUrl.ToString());
         string macstring = macstringMatch.Success ? macstringMatch.Groups[1].Value : "111111111";
         string passwordEncode = password + ">" + macstring;
         string passwordEncrypt = RsaNoPadding(passwordEncode, modulus, exponent);
@@ -166,4 +166,10 @@ public class HustNetworkController(string username, string password)
         // 转换为十六进制字符串
         return Convert.ToHexString(cryptDataPad).ToLower();
     }
+
+    [GeneratedRegex("top.self.location.href='(.*)'")]
+    private static partial Regex RegexMatchVerificationUrl();
+
+    [GeneratedRegex(@"mac=(\w+)&", RegexOptions.Compiled)]
+    private static partial Regex RegexMatchMacString();
 }
