@@ -140,7 +140,7 @@ public partial class MainWindow : Window
                     if (originalUrl is null)
                     {
                         // 检测网络连通状态
-                        NetworkStatus = HustNetworkController.Pong();
+                        NetworkStatus = HustNetworkController.CheckInternetAccess();
                         if (!NetworkStatus)
                         {
                             Log.Information("Network disconnected");

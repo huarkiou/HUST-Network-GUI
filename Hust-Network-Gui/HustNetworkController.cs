@@ -21,48 +21,57 @@ public partial class HustNetworkController(string username, string password)
 
     public Uri? GetVerificationUrl()
     {
+        return GetVerificationUrlAsync().Result;
+    }
+
+    private async Task<Uri?> GetVerificationUrlAsync()
+    {
         Uri[] urls =
         [
             new("http://connect.rom.miui.com/generate_204"),
             new("http://connectivitycheck.platform.hicloud.com/generate_204"),
-            new("http://wifi.vivo.com.cn/generate_204"),
-            // new("http://1.1.1.1")
+            new("http://wifi.vivo.com.cn/generate_204")
         ];
 
-        List<Task<HttpResponseMessage>> tasks = [];
-        tasks.AddRange(urls.Select(_client.GetAsync));
-        while (tasks.Count != 0)
+        var tasks = urls.Select(url => _client.GetAsync(url)).ToList();
+
+        List<Exception> exceptions = [];
+
+        while (tasks.Count > 0)
         {
-            var task = Task.WhenAny(tasks).Result;
-            if (task.IsCompleted)
-            {
-                tasks.RemoveAt(tasks.FindIndex(t => t == task));
-            }
-            else
-            {
-                continue;
-            }
+            var task = await Task.WhenAny(tasks);
+            tasks.Remove(task);
 
-            if (!task.IsCompletedSuccessfully)
+            if (task.IsCompletedSuccessfully)
             {
-                _ = task.Exception;
-                continue;
-            }
+                var responseMessage = await task;
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var content = await responseMessage.Content.ReadAsStringAsync();
+                    content = content.Trim();
 
-            var responseMessage = task.Result;
-            if (!responseMessage.IsSuccessStatusCode) continue;
-            var content = responseMessage.Content.ReadAsStringAsync().Result.Trim();
-            if (content.Length <= 0)
-            {
-                continue;
+                    if (content.Length > 0)
+                    {
+                        var resMatch = RegexMatchVerificationUrl().Match(content);
+                        if (resMatch.Success)
+                        {
+                            Log.Debug("Get from {}. The response is {}",
+                                responseMessage.RequestMessage?.RequestUri?.AbsoluteUri,
+                                resMatch.Groups[1].Value);
+                            return new Uri(resMatch.Groups[1].Value);
+                        }
+                    }
+                }
             }
+            else if (task.Exception != null)
+            {
+                exceptions.Add(task.Exception);
+            }
+        }
 
-            var resMatch = RegexMatchVerificationUrl().Match(content);
-            if (resMatch.Success)
-            {
-                Log.Debug("Get from {}. The response is {}", urls[task.Id].AbsoluteUri, resMatch.Groups[1].Value);
-                return new Uri(resMatch.Groups[1].Value);
-            }
+        if (tasks.Count == 0 && exceptions.Count > 0)
+        {
+            Log.Information(new AggregateException(exceptions), "Cannot fetching verification URL");
         }
 
         return null;
@@ -134,7 +143,7 @@ public partial class HustNetworkController(string username, string password)
         return node["result"]!.ToString() == "success";
     }
 
-    public static bool Pong()
+    public static bool CheckInternetAccess()
     {
         return Ping("hust.edu.cn") || Ping("8.8.8.8");
     }
