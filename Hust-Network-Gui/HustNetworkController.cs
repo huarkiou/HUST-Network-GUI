@@ -162,8 +162,14 @@ public partial class HustNetworkController(string? username, string? password)
         var reply = p1.Send(System.Net.Dns.GetHostEntry(host).AddressList.First(), TimeSpan.FromMilliseconds(1000),
             null,
             null);
+        p1.Dispose();
         Log.Debug($"Ping {reply.Address} with RTT {reply.RoundtripTime} ms");
         return reply.Status == IPStatus.Success;
+    }
+
+    ~HustNetworkController()
+    {
+        _client.Dispose();
     }
 
     private static string RsaNoPadding(string text, BigInteger modulus, BigInteger exponent)

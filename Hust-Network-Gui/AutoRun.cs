@@ -35,6 +35,7 @@ internal class AutoRun
         if (OperatingSystem.IsWindows())
         {
             _asKey?.Close();
+            _asKey?.Dispose();
         }
     }
 

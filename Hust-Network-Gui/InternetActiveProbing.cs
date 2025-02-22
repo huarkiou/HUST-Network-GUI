@@ -60,6 +60,7 @@ internal class InternetActiveProbing
         if (OperatingSystem.IsWindows())
         {
             _asKey?.Close();
+            _asKey?.Dispose();
         }
     }
 }
