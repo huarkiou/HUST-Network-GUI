@@ -179,6 +179,6 @@ public partial class HustNetworkController(string username, string password)
     [GeneratedRegex("top.self.location.href='(.*)'")]
     private static partial Regex RegexMatchVerificationUrl();
 
-    [GeneratedRegex(@"mac=(\w+)&", RegexOptions.Compiled)]
+    [GeneratedRegex(@"mac=(\w+)&")]
     private static partial Regex RegexMatchMacString();
 }
