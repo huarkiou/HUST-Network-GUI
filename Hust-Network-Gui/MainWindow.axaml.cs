@@ -17,7 +17,6 @@ public partial class MainWindow : Window
     private readonly InternetActiveProbing _activeProbing;
     private bool _networkStatus;
     private readonly EventWaitHandle _inputWaitHandle = new AutoResetEvent(false);
-
     private TimeSpan _errorTimeout = TimeSpan.FromSeconds(10);
     private TimeSpan _successTimeout = TimeSpan.FromSeconds(60);
     private readonly BackgroundWorker _backgroundWorker;
@@ -86,84 +85,95 @@ public partial class MainWindow : Window
         _backgroundWorker = new BackgroundWorker();
         _backgroundWorker.DoWork += (_, _) =>
         {
+            var hustNetworkController = new HustNetworkController(AppConfiguration.Instance.Config.Username,
+                AppConfiguration.Instance.Config.Password);
             var firstCircle = true;
             var reinputPassword = false;
             while (!IsShutdown)
             {
                 try
                 {
-                    // 读取账号密码
-                    while (reinputPassword || AppConfiguration.Instance.Config.Username is null ||
-                           AppConfiguration.Instance.Config.Password is null)
+                    // 检查网络连通性ping
+                    NetworkStatus = HustNetworkController.CheckInternetAccess();
+
+                    if (!NetworkStatus || firstCircle)
                     {
-                        Dispatcher.UIThread.Post(async void () =>
+                        // 读取账号密码
+                        while (reinputPassword || hustNetworkController.Username is null ||
+                               hustNetworkController.Password is null)
                         {
-                            try
+                            Log.Information("Waiting for user input");
+                            Dispatcher.UIThread.Post(async void () =>
                             {
-                                var inputWindow = new InputInfoWindow();
-                                if (AppConfiguration.Instance.Config.Password is not null)
+                                try
                                 {
-                                    inputWindow.PasswordTextBlock.Text = AppConfiguration.Instance.Config.Password;
-                                }
+                                    var inputWindow = new InputInfoWindow();
+                                    if (hustNetworkController.Username is not null)
+                                    {
+                                        inputWindow.UsernameTextBlock.Text = hustNetworkController.Username;
+                                    }
 
-                                if (AppConfiguration.Instance.Config.Username is not null)
+                                    if (hustNetworkController.Password is not null)
+                                    {
+                                        inputWindow.PasswordTextBlock.Text = hustNetworkController.Password;
+                                    }
+
+                                    Show();
+                                    (hustNetworkController.Username, hustNetworkController.Password) =
+                                        await inputWindow.ShowDialog<(string, string)>(this);
+                                    Close();
+                                    reinputPassword = false;
+                                }
+                                catch (Exception e)
                                 {
-                                    inputWindow.UsernameTextBlock.Text = AppConfiguration.Instance.Config.Username;
+                                    Log.Error(e, "Error reading input from user");
                                 }
-
-                                Show();
-                                var result = await inputWindow.ShowDialog<(string, string)>(this);
-
-                                AppConfiguration.Instance.Config.Username = result.Item1;
-                                AppConfiguration.Instance.Config.Password = result.Item2;
-                                AppConfiguration.Instance.Save();
-                                reinputPassword = false;
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e, "Error reading input from user");
-                            }
-                            finally
-                            {
-                                _inputWaitHandle.Set();
-                            }
-                        });
-                        Log.Information("Waiting for user input");
-                        _inputWaitHandle.WaitOne();
-                    }
-
-                    var hustNetworkController = new HustNetworkController(AppConfiguration.Instance.Config.Username!,
-                        AppConfiguration.Instance.Config.Password!);
-
-                    // 访问eportal链接获取url
-                    var originalUrl = hustNetworkController.GetVerificationUrl();
-                    if (originalUrl is null)
-                    {
-                        // 检测网络连通状态
-                        NetworkStatus = HustNetworkController.CheckInternetAccess();
-                        if (!NetworkStatus)
-                        {
-                            Log.Information("Network disconnected");
-                        }
-                        else if (firstCircle)
-                        {
-                            Log.Information("Network has already connected");
+                                finally
+                                {
+                                    _inputWaitHandle.Set();
+                                }
+                            });
+                            _inputWaitHandle.WaitOne();
                         }
 
-                        firstCircle = false;
-                    }
-                    else
-                    {
-                        // 登录校园网
-                        NetworkStatus = hustNetworkController.SendLoginRequest(originalUrl);
-                        if (NetworkStatus)
+                        // 访问eportal链接获取url
+                        var originalUrl = hustNetworkController.GetVerificationUrl();
+                        if (originalUrl is null)
                         {
-                            Log.Information("Connected to Hust Campus Network Successfully");
+                            // 检测网络连通状态
+                            NetworkStatus = HustNetworkController.CheckInternetAccess();
+                            if (!NetworkStatus)
+                            {
+                                Log.Information("Network disconnected");
+                            }
+                            else if (firstCircle)
+                            {
+                                Log.Information("Network has already connected");
+                            }
+
+                            firstCircle = false;
                         }
                         else
                         {
-                            Log.Warning("Fail to connect to Hust Campus Network, maybe invalid username or password");
-                            reinputPassword = true;
+                            // 登录校园网
+                            NetworkStatus = hustNetworkController.SendLoginRequest(originalUrl);
+                            if (NetworkStatus)
+                            {
+                                Log.Information("Connected to Hust Campus Network Successfully");
+                                if (AppConfiguration.Instance.Config.Username != hustNetworkController.Username ||
+                                    AppConfiguration.Instance.Config.Password != hustNetworkController.Password)
+                                {
+                                    AppConfiguration.Instance.Config.Username = hustNetworkController.Username;
+                                    AppConfiguration.Instance.Config.Password = hustNetworkController.Password;
+                                    AppConfiguration.Instance.Save();
+                                }
+                            }
+                            else
+                            {
+                                Log.Warning(
+                                    "Fail to connect to Hust Campus Network, maybe invalid username or password");
+                                reinputPassword = true;
+                            }
                         }
                     }
                 }

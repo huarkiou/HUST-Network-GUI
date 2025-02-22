@@ -14,10 +14,13 @@ using Serilog;
 
 namespace HustNetworkGui;
 
-public partial class HustNetworkController(string username, string password)
+public partial class HustNetworkController(string? username, string? password)
 {
     private readonly HttpClient _client = new(new SocketsHttpHandler
         { AllowAutoRedirect = true, MaxAutomaticRedirections = 3, UseCookies = true, UseProxy = false });
+
+    public string? Username { get; set; } = username;
+    public string? Password { get; set; } = password;
 
     public Uri? GetVerificationUrl()
     {
@@ -107,11 +110,16 @@ public partial class HustNetworkController(string username, string password)
 
     public bool SendLoginRequest(Uri originalUrl)
     {
+        if (Username == null || Password == null)
+        {
+            return false;
+        }
+
         // 加密密码
         var (modulus, exponent) = GetModExpFromPageinfo(originalUrl);
         var macstringMatch = RegexMatchMacString().Match(originalUrl.ToString());
         string macstring = macstringMatch.Success ? macstringMatch.Groups[1].Value : "111111111";
-        string passwordEncode = password + ">" + macstring;
+        string passwordEncode = Password.Trim() + ">" + macstring;
         string passwordEncrypt = RsaNoPadding(passwordEncode, modulus, exponent);
 
         // 发送请求
@@ -129,7 +137,7 @@ public partial class HustNetworkController(string username, string password)
                 { "validcode", "" },
                 { "passwordEncrypt", "true" },
                 { "queryString", HttpUtility.UrlEncode(originalUrl.Query.TrimStart('?')) },
-                { "userId", username.Trim() },
+                { "userId", Username.Trim() },
                 { "password", passwordEncrypt.Trim() },
             });
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
