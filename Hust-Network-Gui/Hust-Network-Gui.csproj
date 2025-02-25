@@ -22,6 +22,7 @@
         <FileVersion>1.0.0</FileVersion>
         <NeutralLanguage>zh-Hans</NeutralLanguage>
         <InvariantGlobalization>true</InvariantGlobalization>
+        <LangVersion>14</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

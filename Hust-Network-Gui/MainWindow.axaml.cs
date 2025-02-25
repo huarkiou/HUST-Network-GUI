@@ -15,7 +15,6 @@ public partial class MainWindow : Window
     private bool _showFirstTime = true;
     private readonly AutoRun _autoRun;
     private readonly InternetActiveProbing _activeProbing;
-    private bool _networkStatus;
     private readonly EventWaitHandle _inputWaitHandle = new AutoResetEvent(false);
     private TimeSpan _errorTimeout = TimeSpan.FromSeconds(10);
     private TimeSpan _successTimeout = TimeSpan.FromSeconds(60);
@@ -24,11 +23,11 @@ public partial class MainWindow : Window
 
     private bool NetworkStatus
     {
-        get => _networkStatus;
+        get;
         set
         {
-            if (_networkStatus == value) return;
-            _networkStatus = value;
+            if (field == value) return;
+            field = value;
             Dispatcher.UIThread.Post(() => StatusLabel.Content = "状态：" + (value ? "已连接" : "已断开"));
         }
     }
@@ -46,6 +45,13 @@ public partial class MainWindow : Window
         {
             ((Window)sender!).Hide();
             eventArgs.Cancel = true;
+        };
+
+        NetworkChange.NetworkAvailabilityChanged += (_, _) =>
+        {
+            Log.Information(NetworkInterface.GetIsNetworkAvailable()
+                ? "Network Interface Available now"
+                : "Network Interface Not Available");
         };
 
         _autoRun = new AutoRun(App.ProgramName);
@@ -74,13 +80,6 @@ public partial class MainWindow : Window
         };
         ErrorTimeoutControl.ValueChanged += (_, _) => SaveConfiguration();
         SuccessTimeoutControl.ValueChanged += (_, _) => SaveConfiguration();
-
-        NetworkChange.NetworkAvailabilityChanged += (_, _) =>
-        {
-            Log.Information(NetworkInterface.GetIsNetworkAvailable()
-                ? "Network Interface Available now"
-                : "Network Interface Not Available");
-        };
 
         _backgroundWorker = new BackgroundWorker();
         _backgroundWorker.DoWork += (_, _) =>
