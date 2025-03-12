@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Net.NetworkInformation;
 using System.Security.Principal;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -82,7 +83,7 @@ public partial class MainWindow : Window
         SuccessTimeoutControl.ValueChanged += (_, _) => SaveConfiguration();
 
         _backgroundWorker = new BackgroundWorker();
-        _backgroundWorker.DoWork += (_, _) =>
+        _backgroundWorker.DoWork += async (_, _) =>
         {
             var hustNetworkController = new HustNetworkController(AppConfiguration.Instance.Config.Username,
                 AppConfiguration.Instance.Config.Password);
@@ -136,7 +137,7 @@ public partial class MainWindow : Window
                         }
 
                         // 访问eportal链接获取url
-                        var originalUrl = hustNetworkController.GetVerificationUrl();
+                        var originalUrl = await hustNetworkController.GetVerificationUrlAsync();
                         if (originalUrl is null)
                         {
                             // 检测网络连通状态
@@ -155,7 +156,7 @@ public partial class MainWindow : Window
                         else
                         {
                             // 登录校园网
-                            NetworkStatus = hustNetworkController.SendLoginRequest(originalUrl);
+                            NetworkStatus = await hustNetworkController.SendLoginRequestAsync(originalUrl);
                             if (NetworkStatus)
                             {
                                 Log.Information("Connected to Hust Campus Network Successfully");
@@ -182,7 +183,7 @@ public partial class MainWindow : Window
                     Log.Error(e, "Error when connect to Hust Campus Network");
                 }
 
-                if (!reinputPassword) Thread.Sleep(NetworkStatus ? _successTimeout : _errorTimeout);
+                if (!reinputPassword) await Task.Delay(NetworkStatus ? _successTimeout : _errorTimeout);
             }
         };
         _backgroundWorker.RunWorkerAsync();

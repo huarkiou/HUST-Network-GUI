@@ -22,12 +22,12 @@ public partial class HustNetworkController(string? username, string? password)
     public string? Username { get; set; } = username;
     public string? Password { get; set; } = password;
 
-    public Uri? GetVerificationUrl()
+    ~HustNetworkController()
     {
-        return GetVerificationUrlAsync().Result;
+        _client.Dispose();
     }
 
-    private async Task<Uri?> GetVerificationUrlAsync()
+    public async Task<Uri?> GetVerificationUrlAsync()
     {
         Uri[] urls =
         [
@@ -80,7 +80,7 @@ public partial class HustNetworkController(string? username, string? password)
         return null;
     }
 
-    private (BigInteger, BigInteger) GetModExpFromPageinfo(Uri originalUrl)
+    private async Task<(BigInteger, BigInteger)> GetModExpFromPageinfoAsync(Uri originalUrl)
     {
         _client.DefaultRequestHeaders.Add("Accept", "*/*");
         _client.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6");
@@ -96,11 +96,9 @@ public partial class HustNetworkController(string? username, string? password)
         HttpContent content =
             new FormUrlEncodedContent([new KeyValuePair<string, string>("queryString", "method=pageInfo")]);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-        var task = _client.PostAsync(new Uri(pageInfoUrl), content);
-        task.Wait();
-        var response = task.Result;
+        var response = await _client.PostAsync(new Uri(pageInfoUrl), content);
         response.EnsureSuccessStatusCode();
-        var resultJsonString = response.Content.ReadAsStringAsync().Result;
+        var resultJsonString = await response.Content.ReadAsStringAsync();
         Log.Debug(resultJsonString);
         var node = JsonNode.Parse(resultJsonString)!;
         var mod = BigInteger.Parse("0" + node["publicKeyModulus"]!, NumberStyles.HexNumber);
@@ -108,7 +106,7 @@ public partial class HustNetworkController(string? username, string? password)
         return (mod, exp);
     }
 
-    public bool SendLoginRequest(Uri originalUrl)
+    public async Task<bool> SendLoginRequestAsync(Uri originalUrl)
     {
         if (Username == null || Password == null)
         {
@@ -116,7 +114,7 @@ public partial class HustNetworkController(string? username, string? password)
         }
 
         // 加密密码
-        var (modulus, exponent) = GetModExpFromPageinfo(originalUrl);
+        var (modulus, exponent) = await GetModExpFromPageinfoAsync(originalUrl);
         var macstringMatch = RegexMatchMacString().Match(originalUrl.ToString());
         string macstring = macstringMatch.Success ? macstringMatch.Groups[1].Value : "111111111";
         string passwordEncode = Password.Trim() + ">" + macstring;
@@ -141,11 +139,9 @@ public partial class HustNetworkController(string? username, string? password)
                 { "password", passwordEncrypt.Trim() },
             });
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-        var task = _client.PostAsync(new Uri(loginUrl), content);
-        task.Wait();
-        var response = task.Result;
+        var response = await _client.PostAsync(new Uri(loginUrl), content);
         response.EnsureSuccessStatusCode();
-        var resultJsonString = response.Content.ReadAsStringAsync().Result;
+        var resultJsonString = await response.Content.ReadAsStringAsync();
         Log.Debug(resultJsonString);
         var node = JsonNode.Parse(resultJsonString)!;
         return node["result"]!.ToString() == "success";
@@ -166,12 +162,7 @@ public partial class HustNetworkController(string? username, string? password)
         Log.Debug($"Ping {reply.Address} with RTT {reply.RoundtripTime} ms");
         return reply.Status == IPStatus.Success;
     }
-
-    ~HustNetworkController()
-    {
-        _client.Dispose();
-    }
-
+    
     private static string RsaNoPadding(string text, BigInteger modulus, BigInteger exponent)
     {
         // 字符串转换为bytes
