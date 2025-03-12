@@ -1,5 +1,11 @@
 bin/
 obj/
+
+.idea
+.vs
+.vscode
+
+*.DotSettings.user
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
