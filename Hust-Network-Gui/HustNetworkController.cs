@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Serilog;
+using Exception = System.Exception;
 
 namespace HustNetworkGui;
 
@@ -73,9 +74,12 @@ public partial class HustNetworkController(string? username, string? password)
             }
         }
 
-        if (tasks.Count == 0 && exceptions.Count > 0)
+        if (tasks.Count == 0 && exceptions.Count == urls.Length)
         {
-            Log.Information(new AggregateException(exceptions), "Cannot fetching verification URL");
+            foreach (var e in exceptions)
+            {
+                Log.Warning(e, "Cannot fetching verification URL");
+            }
         }
 
         return null;
