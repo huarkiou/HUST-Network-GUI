@@ -33,7 +33,8 @@ public partial class HustNetworkController(string? username, string? password)
         [
             new("http://connect.rom.miui.com/generate_204"),
             new("http://connectivitycheck.platform.hicloud.com/generate_204"),
-            new("http://wifi.vivo.com.cn/generate_204")
+            new("http://wifi.vivo.com.cn/generate_204"),
+            new("http://hust.edu.cn"),
         ];
 
         var tasks = urls.Select(url => _client.GetAsync(url)).ToList();
@@ -162,7 +163,7 @@ public partial class HustNetworkController(string? username, string? password)
         Log.Debug($"Ping {reply.Address} with RTT {reply.RoundtripTime} ms");
         return reply.Status == IPStatus.Success;
     }
-    
+
     private static string RsaNoPadding(string text, BigInteger modulus, BigInteger exponent)
     {
         // 字符串转换为bytes
