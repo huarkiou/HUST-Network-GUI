@@ -9,11 +9,14 @@
         MinWidth="200" MinHeight="120"
         WindowStartupLocation="CenterScreen"
         HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-    <Grid RowDefinitions="*,*,*" ColumnDefinitions="50, 150">
+    <Grid RowDefinitions="*,*,*,*" ColumnDefinitions="50, 150">
         <Label Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Content="学号：" />
         <TextBox Name="UsernameTextBlock" Grid.Row="0" Grid.Column="1" />
         <Label Grid.Row="1" Grid.Column="0" VerticalContentAlignment="Center" Content="密码：" />
         <TextBox Name="PasswordTextBlock" Grid.Row="1" Grid.Column="1" />
-        <Button Grid.Row="2" Grid.Column="1" Content="确定" Click="ConfirmButton_OnClick"/>
+        <TextBlock Name="Message" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                   Foreground="Red" TextWrapping="WrapWithOverflow" />
+        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" 
+                Content="确定" Click="ConfirmButton_OnClick" />
     </Grid>
 </Window>

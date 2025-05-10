@@ -5,9 +5,16 @@ namespace HustNetworkGui;
 
 public partial class InputInfoWindow : Window
 {
-    public InputInfoWindow()
+    public InputInfoWindow() : this(null, null, null)
+    {
+    }
+
+    public InputInfoWindow(string? username, string? password, string? msg = null)
     {
         InitializeComponent();
+        UsernameTextBlock.Text = username;
+        PasswordTextBlock.Text = password;
+        Message.Text = msg;
     }
 
     private void ConfirmButton_OnClick(object? sender, RoutedEventArgs e)

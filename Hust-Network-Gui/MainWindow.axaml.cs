@@ -93,8 +93,11 @@ public partial class MainWindow : Window
             {
                 try
                 {
-                    // 检查网络连通性ping
-                    NetworkStatus = HustNetworkController.CheckInternetAccess();
+                    if (!firstCircle)
+                    {
+                        // 检查网络连通性ping
+                        NetworkStatus = HustNetworkController.CheckInternetAccess();
+                    }
 
                     if (!NetworkStatus || firstCircle)
                     {
@@ -107,20 +110,17 @@ public partial class MainWindow : Window
                             {
                                 try
                                 {
-                                    var inputWindow = new InputInfoWindow();
-                                    if (hustNetworkController.Username is not null)
-                                    {
-                                        inputWindow.UsernameTextBlock.Text = hustNetworkController.Username;
-                                    }
-
-                                    if (hustNetworkController.Password is not null)
-                                    {
-                                        inputWindow.PasswordTextBlock.Text = hustNetworkController.Password;
-                                    }
-
+                                    var inputWindow = new InputInfoWindow(hustNetworkController.Username,
+                                        hustNetworkController.Password, hustNetworkController.Message);
                                     Show();
-                                    (hustNetworkController.Username, hustNetworkController.Password) =
-                                        await inputWindow.ShowDialog<(string, string)>(this);
+                                    (string? usernameInput, string? passwordInput) =
+                                        await inputWindow.ShowDialog<(string?, string?)>(this);
+                                    if (usernameInput?.Length > 0 || passwordInput?.Length > 0)
+                                    {
+                                        hustNetworkController.Username = usernameInput;
+                                        hustNetworkController.Password = passwordInput;
+                                    }
+
                                     Close();
                                     reinputPassword = false;
                                 }

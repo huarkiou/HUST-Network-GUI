@@ -22,6 +22,7 @@ public partial class HustNetworkController(string? username, string? password)
 
     public string? Username { get; set; } = username;
     public string? Password { get; set; } = password;
+    public string? Message { get; private set; } = null;
 
     ~HustNetworkController()
     {
@@ -149,6 +150,7 @@ public partial class HustNetworkController(string? username, string? password)
         var resultJsonString = await response.Content.ReadAsStringAsync();
         Log.Debug(resultJsonString);
         var node = JsonNode.Parse(resultJsonString)!;
+        Message = node["message"]?.ToString();
         return node["result"]!.ToString() == "success";
     }
 
